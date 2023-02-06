@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	  xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"> <!-- security xmlns 설정 해줘야함 -->
+	<head>
+		<meta charset="UTF-8">
+		<title>user2::loginSuccess</title>
+		<sec:authentication property="principal"/>
+	</head>
+	<body>
+		<h3>user2 loginSuccess</h3>
+		<p sec:authorize="isAuthenticated()"> <!-- 로그인 인증을 했다면 보여지고 아니면 안 보임 -->
+			아이디 : <span>[[${#authentication.principal.uid}]]</span><br> <!-- myUser, session 등록한 사용자 객체 -->
+			이름 : <span>[[${#authentication.principal.name}]]</span> <br> 
+			휴대폰 : <span sec:authentication="principal.hp">휴대폰 번호</span> <br> 
+			나이 : <span sec:authentication="principal.age">나이</span><br> 
+			날짜 : <span sec:authentication="principal.rdate">가입일</span><br> 
+			<a th:href="@{/user2/logout}">로그아웃</a>
+		</p>		 
+		<p sec:authorize="isAnonymous()"> <!-- 로그인을 하지 않았을 시 -->
+			로그인을 해야 합니다.
+			<a th:href="@{/user2/login}">로그인</a>
+		</p>
+		
+		
+	</body>
+</html>

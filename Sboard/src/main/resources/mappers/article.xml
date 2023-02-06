@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.sboard.dao.ArticleDAO">
+
+	<insert id="insertArticle" useGeneratedKeys="true" keyProperty="no"> <!-- no값을 리턴하게 된다. 데이터 공급해주는 쿼리문 vo에 접근 -->
+		insert into `board_article` set
+			`title`=#{title},
+			`content`=#{content},
+			<if test="fname.isEmpty() == true">
+				`file` = 0,
+			</if>
+			<if test="fname.isEmpty() == false">
+				`file`= 1,
+			</if>
+			`uid`=#{uid},
+			`regip`=#{regip},
+			`rdate`=NOW();
+			
+	</insert>
+	
+	<insert id="insertFile">
+		insert into `board_file` set
+			`parent`=#{parent},
+			`newName`=#{newName},
+			`oriName`=#{oriName};
+	</insert>
+	
+	<select id="selectFile" resultType="kr.co.sboard.vo.FileVO">
+		select * from `board_file` where `fno` = #{fno};
+	</select>
+	
+	<update id="updateDownload">
+		update `board_file` set `download` = `download` + 1 where `fno` = #{fno};
+	</update>
+	
+	<update id="updateArticle">
+		update `board_article` set 
+		`title` = #{title}, 
+		`content` = #{content}
+		where `no` = #{no};
+	</update>
+	
+	<select id="selectArticles" resultType="kr.co.sboard.vo.ArticleVO">
+		select a.*, b.`nick` from `board_article` as a
+		join `board_user` as b
+		on a.uid = b.uid
+		where `parent` = 0
+		order by `no` desc
+		limit #{start}, 10;
+	</select>
+	
+	<select id="selectCountTotal" resultType="int">
+		select count(`no`) from `board_article` where `parent` = 0;
+	</select>
+	
+	<select id="selectArticle" resultMap="selectArticleResultMap"> <!-- 서로 다른 VO를 join 하였기 때문에 resultMap을 사용. 참조한다. -->
+		select * from `board_article` as a
+		left join `board_file` as b
+		on a.no = b.parent
+		where `no` = #{no};
+	</select>
+	
+	<!-- 조회(select) 결과를 상세하게 매핑하기 위한 사용자 정의 Map -->
+	<resultMap  id="selectArticleResultMap" type="kr.co.sboard.vo.ArticleVO"> <!-- resultMap 정의. 필요한 것만 매핑하면 됨 -->
+		<id column="no" property="no"/> <!-- 쿼리문 속성(column)을 VO(property)에 매핑 -->
+		<result column="parent" property="parent"/>
+		<result column="comment" property="comment"/>
+		<!-- <result column="cate" property="cate"/> -->
+		<result column="title" property="title"/>
+		<result column="content" property="content"/>
+		<result column="file" property="file"/>
+		<!-- <result column="hit" property="hit"/ -->
+		<result column="uid" property="uid"/>
+		<!-- <result column="regip" property="regip"/> -->
+		<result column="rdate" property="rdate"/>
+		
+		<!-- 연관관계 매핑 -->
+		<association property="fileVO" javaType="kr.co.sboard.vo.FileVO">
+			<id column="fno" property="fno"/>
+			<result column="parent" property="parent"/>
+			<result column="newName" property="newName"/>
+			<result column="oriName" property="oriName"/>
+			<result column="download" property="download"/>
+		</association>
+		
+		<!-- 연관관계 매핑 시 리스트 형태이면 collection을 사용. 파일 첨부가 여러개일 때 -->
+		
+	</resultMap>
+	
+		<delete id="deleteArticle">
+			delete from `board_article` where `no` = #{no};
+		</delete>
+	
+	
+	
+</mapper>
